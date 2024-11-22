@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS request_servers ( -- which request is currently worki
     server_id INTEGER REFERENCES servers(id)
 );
 
-
-
-
+CREATE TABLE IF NOT EXISTS logs(
+    id SERIAL PRIMARY KEY,
+    log_time TIMESTAMP,
+    log_text TEXT
+);

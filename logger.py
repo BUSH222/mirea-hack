@@ -19,38 +19,18 @@
 import logging
 from dbloader import connect_to_db
 
-try:
+
+def log_event(event_description: str, log_level=logging.DEBUG) -> None:
     conn, cur = connect_to_db()
-except Exception as e:
-    print(f'Error connecting to the database, it might not be initialised yet. {e}')
-    conn, cur = None, None
-
-
-def setup_custom_logger(name):
-    debug_format_string = '%(asctime)s - %(levelname)s \n' \
-                          '%(message)s \n'
-
-    debug_formatter = logging.Formatter(debug_format_string)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(debug_formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(console_handler)
-    return logger
-
-
-custom_logger = setup_custom_logger('combined')
-
-
-def log_event(event_description: str, log_level=logging.DEBUG, **kwargs) -> None:
-    full_event_description = event_description if not kwargs else event_description + '\n' + str(kwargs)
     try:
         cur.execute("INSERT INTO logs (log_time, log_text) VALUES (NOW(), %s);", (event_description, ))
         conn.commit()
-        custom_logger.log(log_level, full_event_description)
     except Exception as e:
         conn.rollback()
         print(f"ERROR CREATING LOG, full error: {e}")
+    cur.close()
+    conn.close()
+
+
+if __name__ == "__main__":
+    log_event('logging_test')

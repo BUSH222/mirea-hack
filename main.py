@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from login import app_login, load_user
 from flask_login import LoginManager, login_required, current_user
 from dbloader import connect_to_db
@@ -34,12 +34,28 @@ def book_server():
         return render_template('book_server.html')
     if request.method == 'POST':
         return render_template('book_server.html')
-    return render_template('index.html')
+    return render_template('book_server.html')
 
 
-@app.route('/view_server', methods=['GET'])
-def view_server():
-    pass
+@app.route('/booking_list', methods=['GET'])
+@login_required
+def booking_list():
+    cur.execute("SELECT id, os, start_time - CURRENT_TIMESTAMP AS start_time, accepted\
+                FROM users WHERE id = %s", (current_user.id))
+    data = cur.fetchall() or []
+    return render_template('booking_list.html', data=data)
+
+
+@app.route('/view_booking')
+@login_required
+def view_booking():
+    booking_id = request.args.get('id')
+    cur.execute("SELECT id, os, user_comment, start_time, end_time, accepted\
+                FROM users WHERE id = %s AND user = %s", (booking_id, current_user.id))
+    data = cur.fetchone()
+    if data is None:
+        return redirect(url_for('book_server'))
+    return render_template('view_booking.html', data=data)
 
 
 if __name__ == '__main__':

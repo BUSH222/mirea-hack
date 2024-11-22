@@ -1,5 +1,5 @@
-from flask import redirect, render_template, request, url_for, Blueprint
-from flask_login import login_user, LoginManager, UserMixin, login_required, logout_user
+from flask import redirect, render_template, request, url_for, Blueprint, jsonify
+from flask_login import login_user, LoginManager, UserMixin, login_required, logout_user, current_user
 from dbloader import connect_to_db
 
 
@@ -25,6 +25,19 @@ def load_user(user_id):
     if user_data:
         return User(*user_data)
     return None
+
+
+def check_isAdmin(f):
+    """Decorator which lets the function run only if the user is an admin."""
+    def wrapper(*args, **kwargs):
+        cur.execute("SELECT id, name, password, isAdmin FROM users WHERE id = %s", (current_user.id, ))
+        user_data = cur.fetchone()
+        if user_data[3]:
+            return f(*args, **kwargs)
+        else:
+            return jsonify({"error": "Access denied. a is not True"}), 403
+    wrapper.__name__ = f.__name__
+    return wrapper
 
 
 @app_login.route('/login', methods=['GET', 'POST'])
