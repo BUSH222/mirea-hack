@@ -13,7 +13,7 @@ import logging
 dynamic_host = 'localhost'
 
 
-def connect_to_db(db_name='biv', postgres_pwd='12345678', host=dynamic_host, port='5432'):
+def connect_to_db(db_name='mirea', postgres_pwd='12345678', host=dynamic_host, port='5432'):
     """
     Creates a connection to a postgres database and returns the connection and cursor objects
     Args:
@@ -35,7 +35,7 @@ def connect_to_db(db_name='biv', postgres_pwd='12345678', host=dynamic_host, por
     return conn, cursor
 
 
-def create_db(db_name='biv', postgres_pwd='12345678', host=dynamic_host, port='5432') -> None:
+def create_db(db_name='mirea', postgres_pwd='12345678', host=dynamic_host, port='5432') -> None:
     """Creates an empty database inside the postgres server.
     Args:
         db_name (str): name of the created database
@@ -72,7 +72,7 @@ def create_db(db_name='biv', postgres_pwd='12345678', host=dynamic_host, port='5
     logging.info('Database creation operation completed')
 
 
-def create_tables(populate=False, db_name='biv', postgres_pwd='12345678', host=dynamic_host, port='5432') -> None:
+def create_tables(populate=False, db_name='mirea', postgres_pwd='12345678', host=dynamic_host, port='5432') -> None:
     """Creates the tables according to schema.sql and populates them with data according to populate.sql
     Args:
         populate (bool): whether to populate the newly created tables with data from populate.sql
