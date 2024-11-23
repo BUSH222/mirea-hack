@@ -44,7 +44,7 @@ def book_server():
 @login_required
 def booking_list():
     cur.execute("SELECT id, os, start_time - CURRENT_TIMESTAMP AS start_time, accepted\
-                FROM users WHERE id = %s", (current_user.id, ))
+                FROM requests WHERE id = %s", (current_user.id, ))
     data = cur.fetchall() or []
     return render_template('booking_list.html', data=data)
 

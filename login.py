@@ -35,7 +35,7 @@ def check_isAdmin(f):
         if user_data[3]:
             return f(*args, **kwargs)
         else:
-            return jsonify({"error": "Access denied. a is not True"}), 403
+            return jsonify({"error": "Access denied."}), 403
     wrapper.__name__ = f.__name__
     return wrapper
 

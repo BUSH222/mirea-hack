@@ -3,10 +3,6 @@ from flask_login import LoginManager, login_required
 from dbloader import connect_to_db
 from logger import log_event
 from login import check_isAdmin
-from collections import deque
-import time
-import requests
-import requests.exceptions
 import psutil
 import random
 import string
@@ -16,18 +12,6 @@ conn, cur = connect_to_db()
 
 login_manager = LoginManager(admin_app)
 login_manager.login_view = 'app_login.login'
-
-request_timestamps = deque()
-
-
-@admin_app.before_request
-def track_requests():
-    """Track the timestamp of each request. Update"""
-    global request_timestamps
-    current_time = time.time()
-    request_timestamps.append(current_time)
-    while request_timestamps and request_timestamps[0] < current_time - 60:
-        request_timestamps.popleft()
 
 
 def generate_random_string():
@@ -145,6 +129,24 @@ def admin_panel_community_view_account_info():
         return f'Error: {e}'
 
 
+@admin_app.route('/admin_panel/community/create_profile')
+@login_required
+@check_isAdmin
+def admin_panel_community_create_profile():
+    name = request.args.get('name')
+    password = request.args.get('password')
+    isAdmin = request.args.get('isAdmin')
+    try:
+        cur.execute('INSERT INTO users  (name, password, isAdmin) VALUES(%s, %s, %s)',
+                    (name, password, isAdmin))
+        conn.commit()
+        log_event("Create account:", log_level=20)
+    except Exception as e:
+        conn.rollback()
+        log_event("Error create account:", log_level=30, kwargs=e)
+        return f'Error: {e}'
+
+
 @admin_app.route('/admin_panel/community/set_account_info')
 @login_required
 @check_isAdmin
@@ -190,29 +192,7 @@ def full_server_status():  # TODO
     Returns:
         json: status of every server in the format {"server_status": {"ram": number, "cpu": number, "rpm": number}}
     """
-    try:
-        main_status_response = requests.get('https://127.0.0.1:5000/main_server_status', verify=False, timeout=1)
-        main_status = main_status_response.json()
-    except (requests.exceptions.Timeout, requests.exceptions.JSONDecodeError, requests.exceptions.ConnectionError):
-        main_status = {'ram': 0, 'cpu': 0, "rpm": 0}
+    master_server_status = {'ram': psutil.virtual_memory().percent,
+                            'cpu': psutil.cpu_percent()}
 
-    try:
-        asset_delivery_status_response = requests.get('http://127.0.0.1:5001/asset_delivery_server_status', timeout=1)
-        asset_delivery_status = asset_delivery_status_response.json()
-    except (requests.exceptions.Timeout, requests.exceptions.JSONDecodeError, requests.exceptions.ConnectionError):
-        asset_delivery_status = {'ram': 0, 'cpu': 0, "rpm": 0}
-    admin_panel_status = {'ram': psutil.virtual_memory().percent,
-                          'cpu': psutil.cpu_percent(),
-                          'rpm': len(request_timestamps)}
-
-    return jsonify({"Main server": main_status,
-                    "Asset delivery": asset_delivery_status,
-                    "Admin panel": admin_panel_status})
-
-
-@admin_app.route('/admin_panel/help')
-@login_required
-@check_isAdmin
-def admin_help():
-    """Render the template for the admin help page."""
-    return render_template("admin_help.html")
+    return jsonify(master_server_status)

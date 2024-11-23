@@ -1,7 +1,4 @@
-const cpuLoadData = {};
-const ramUsageData = {};
-const rpmData = {};
-const serverNames = [];
+const masterData = {};
 
 const colors = ['#E60000', '#32CD32', '#0000FF']
 
@@ -20,7 +17,6 @@ function fetchServerData() {
 // Function to update charts with fetched data
 function updateCharts(data) {
     // Update server names
-    serverNames.length = 0;
     const currentTime = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
     if (timeLabels.length >= 10) {
@@ -29,28 +25,18 @@ function updateCharts(data) {
     timeLabels.push(currentTime);
 
     for (const server in data) {
-        if (data.hasOwnProperty(server)) {
-            serverNames.push(server);
-            if (!cpuLoadData[server]) {
-                cpuLoadData[server] = Array(10).fill(null); // Initialize with 10 null values
-                ramUsageData[server] = Array(10).fill(null); // Initialize with 10 null values
-                rpmData[server] = Array(10).fill(null);
-            }
-            cpuLoadData[server].push(data[server].cpu);
-            ramUsageData[server].push(data[server].ram);
-            rpmData[server].push(data[server].rpm)
-
-            // Limit to 10 data points
-            if (cpuLoadData[server].length > 10) cpuLoadData[server].shift();
-            if (ramUsageData[server].length > 10) ramUsageData[server].shift();
-            if (rpmData[server].length > 10) rpmData[server].shift();
+        if (!masterData[server]) {
+            masterData[server] = Array(10).fill(null); // Initialize with 10 null values
         }
+        masterData[server].push(data[server].cpu);
+        masterData[server].push(data[server].ram);
+
+        // Limit to 10 data points
+        if (masterData[server].length > 10) masterData[server].shift();
     }
 
     // Redraw the charts with new data
-    drawChart(cpuLoadChart, cpuLoadData, 'Нагрузка ЦП');
-    drawChart(ramUsageChart, ramUsageData, 'Оперативная память');
-    drawChart(rpmChart, rpmData, 'Оперативная память');
+    drawChart(cpuLoadChart, masterData, 'Нагрузка на основной сервер');
 }
 
 // Function to draw the chart
