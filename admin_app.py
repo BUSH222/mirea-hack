@@ -98,14 +98,14 @@ def admin_panel_community_delete_account():
 @login_required
 @check_isAdmin
 def admin_panel_requests():
-    cur.execute("SELECT r.id, u.name, r.email, r.user_comment, r.start_time, r.end_time, r.requires_manual_approval\
+    cur.execute("SELECT r.id, u.name, r.email, r.user_comment,\
+                r.start_time, r.end_time, r.accepted, r.requires_manual_approval\
                 FROM requests r JOIN users u ON r.user_id = u.id")
     data = cur.fetchall()
-    print(data)
     return render_template('requests.html', data=data)
 
 
-@admin_app.route('/admin_panel/view_request')
+@admin_app.route('/admin_panel/view_request', methods=['GET', 'POST'])
 @login_required
 @check_isAdmin
 def admin_panel_view_request():
@@ -117,10 +117,18 @@ def admin_panel_view_request():
         data = cur.fetchall()[0]
         return render_template("view_request.html", data=data)
     if request.method == 'POST':
+        data = request.args
+        action = data.get('action')
+        _id = data.get('id')
         try:
-            cur.execute('UPDATE requests SET accepted = True WHERE id = %s )', (id,))
-            conn.commit()
-            log_event("Create account:", log_level=20)
+            if action == 'accept':
+                cur.execute('UPDATE requests SET accepted = true WHERE id = %s', (_id,))
+                conn.commit()
+                log_event("Create account:", log_level=20)
+            elif action == 'decline':
+                cur.execute('UPDATE requests SET accepted = false WHERE id = %s', (_id,))
+                conn.commit()
+                log_event("Request denied:", log_level=20)
             return 'Success'
         except Exception as e:
             print(e)

@@ -59,13 +59,27 @@ body {
 
 h1 {
     margin-bottom: 20px;
-    text-align: left;
+    text-align: center;
+    color: #ff4c4c;
 }
 
 h2 {
     color: #ff4c4c;
     text-align: center;
 }
+
+.btn-primary {
+    background-color: #ff4c4c;
+    border-color: #ff4c4c;
+    color: #ffffff;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #b30000;
+    border-color: #b30000;
+}
+
 
 .table-hover {
     width: 100%;

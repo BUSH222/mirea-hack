@@ -20,85 +20,78 @@
     </nav>
 
     <div class="container mt-5 pt-5">
-        <h2 class="mb-4">Booking Details</h2>
+        <h2 class="mb-4">Детали брони</h2>
 
         <div class="row mb-3">
-            <label for="booking-id" class="form-label">Booking ID</label>
+            <label for="booking-id" class="form-label">ID брони</label>
             <input type="text" id="booking-id" class="form-control" value="{{ data[0] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="name" class="form-label">Name</label>
+            <label for="name" class="form-label">Имя</label>
             <input type="text" id="name" class="form-control" value="{{ data[1] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="email" class="form-label">Email</label>
+            <label for="email" class="form-label">Почта</label>
             <input type="text" id="email" class="form-control" value="{{ data[2] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="os" class="form-label">Operating System</label>
+            <label for="os" class="form-label">Операционная система</label>
             <input type="text" id="os" class="form-control" value="{{ data[3] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="comment" class="form-label">User Comment</label>
+            <label for="comment" class="form-label">Комментарий</label>
             <textarea id="comment" class="form-control" rows="3" readonly>{{ data[4] }}</textarea>
         </div>
 
         <div class="row mb-3">
-            <label for="start-time" class="form-label">Start Time</label>
+            <label for="start-time" class="form-label">Начальная дата</label>
             <input type="text" id="start-time" class="form-control" value="{{ data[5] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="end-time" class="form-label">End Time</label>
+            <label for="end-time" class="form-label">Конечная дата</label>
             <input type="text" id="end-time" class="form-control" value="{{ data[6] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="accepted" class="form-label">Status</label>
+            <label for="accepted" class="form-label">Есть доступ</label>
             <input type="text" id="accepted" class="form-control" value="{{ 'Pending' if data[7] is none else data[7] }}" readonly>
         </div>
 
         <div class="row mb-3">
-            <label for="manual-approval" class="form-label">Requires Manual Approval</label>
+            <label for="manual-approval" class="form-label">Требуется одобрение вручную</label>
             <input type="text" id="manual-approval" class="form-control" value="{{ 'Yes' if data[8] else 'No' }}" readonly>
         </div>
 
         <div class="row mt-4">
             <div class="col text-center">
-                <button class="btn btn-success me-2" onclick="handleBookingAction('accept', '{{ data[0] }}')">Accept</button>
-                <button class="btn btn-danger" onclick="handleBookingAction('decline', '{{ data[0] }}')">Decline</button>
+                <button class="btn btn-success me-2" onclick="handleBookingAction('accept', '{{ data[0] }}')">Разрешить</button>
+                <button class="btn btn-danger" onclick="handleBookingAction('decline', '{{ data[0] }}')">Отклонить</button>
             </div>
         </div>        
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function handleBookingAction(action, bookingId) {
-        const url = `/booking_action`;
-        const payload = { action, booking_id: bookingId };
+        async function handleBookingAction(action, bookingId) {
+            const url = `/admin_panel/view_request?id=${bookingId}&action=${action}`;
 
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(`Booking ${action}ed successfully!`);
-                window.location.href = '/requests';
-            } else {
-                alert(`Failed to ${action} booking.`);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data)
+            })
+            .catch(error => console.error('Error:', error));
+        }
     </script>
 </body>
 </html>

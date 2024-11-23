@@ -28,13 +28,13 @@
     </nav>
 
     <div class="container mt-5">
-        <h2 class="mb-4">Booking list</h2>
+        <h2 class="mb-4">Список брони</h2>
         <table class="table table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th scope="col">OS</th>
-                    <th scope="col">ETA</th>
-                    <th class="text-center" scope="col">View</th>
+                    <th scope="col">ОС</th>
+                    <th scope="col">Осталось времени</th>
+                    <th class="text-center" scope="col">Подробнее</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,11 +44,11 @@
                     <td>{{ row.start_time }}</td>
                     <td class="text-center">
                         {% if row.accepted is none %}
-                            <a href="/view_booking?id={{ row.id }}" class="btn btn-primary btn-sm">Pending</a>
+                            <a href="/view_booking?id={{ row.id }}" class="btn btn-primary btn-sm">В ожидании</a>
                         {% elif row.accepted %}
-                            <a href="/view_booking?id={{ row.id }}" class="btn btn-success btn-sm">Success</a>
+                            <a href="/view_booking?id={{ row.id }}" class="btn btn-success btn-sm">Успешно</a>
                         {% else %}
-                            <a href="/view_booking?id={{ row.id }}" class="btn btn-danger btn-sm">Denied</a>
+                            <a href="/view_booking?id={{ row.id }}" class="btn btn-danger btn-sm">Отказано</a>
                         {% endif %}
                     </td>
                 </tr>

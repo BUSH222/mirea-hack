@@ -90,7 +90,7 @@ def fetch_data_from_database():
             raise Exception
     cur.execute(f"SELECT * FROM requests WHERE accepted = true and start_date - {current_date}<865")
     admin_alert_tickets = list(cur.fetchone)
-    cur.execute("SELECT user_id FROM users ")
+    cur.execute("SELECT users.email, requests.user_id ")  # TODO
     for ticket in admin_alert_tickets:
         send_mail()
 
@@ -119,6 +119,7 @@ def book_server():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         comment = request.args.get('comment')
+        # Check if servers reserved for this time slot
         cur.execute("""
 SELECT COUNT(*) FROM public.requests
 WHERE start_time < CAST(%s AS TIMESTAMP) AND end_time > CAST(%s AS TIMESTAMP);
@@ -128,6 +129,11 @@ WHERE start_time < CAST(%s AS TIMESTAMP) AND end_time > CAST(%s AS TIMESTAMP);
         total = cur.fetchone()[0]
         if total-occupied <= 0:
             return 'All servers reserved for this time slot.'
+
+        # Check if start date is less than the end date
+        if start_date >= end_date:
+            return 'Start date is bigger than end date'
+
         try:
             cur.execute("INSERT INTO requests (user_id, email, os, start_time, end_time, user_comment)\
                         VALUES(%s, %s, %s, %s, %s, %s)", (current_user.id, email, os, start_date, end_date, comment))

@@ -28,45 +28,45 @@
     </nav>
 
     <div class="container mt-5">
-        <h2 class="mb-4">Book a Server</h2>
+        <h2 class="mb-4">Забронировать сервер</h2>
 
         <!-- step 1 -->
         <div id="step1" class="mb-3">
-            <label for="email-input" class="form-label">Enter Your Email</label>
-            <input type="email" id="email-input" class="form-control" placeholder="Enter your email" required>
+            <label for="email-input" class="form-label">Введите вашу эл. почту</label>
+            <input type="email" id="email-input" class="form-control" placeholder="Электронная почта" required>
         </div>
 
         <!-- step 2 -->
         <div id="step2" class="mb-3">
-            <label for="os-select" class="form-label">Select Operating System</label>
+            <label for="os-select" class="form-label">Выберите операционную систему</label>
             <select class="form-select" id="os-select" required>
-                <option value="" selected disabled>Select OS</option>
+                <option value="" selected disabled>Выбрать ОС</option>
                 <option value="linux">Linux</option>
                 <option value="windows">Windows</option>
                 <option value="ubuntu">Ubuntu</option>
-                <option value="custom">Custom</option>
+                <option value="custom">Другая</option>
             </select>
             <div class="custom-input mt-2">
-                <label for="custom-os" class="form-label">Enter Custom OS</label>
-                <input type="text" id="custom-os" class="form-control" placeholder="Enter OS name">
+                <label for="custom-os" class="form-label">Другая ОС</label>
+                <input type="text" id="custom-os" class="form-control" placeholder="Название ОС">
             </div>
         </div>
 
         <!-- step 3 -->
         <div id="step3" class="mb-3">
-            <label for="booking-dates" class="form-label">Select Booking Time Period</label>
-            <input type="date" id="start-date" class="form-control mb-2" placeholder="Start Date">
-            <input type="date" id="end-date" class="form-control" placeholder="End Date">
+            <label for="booking-dates" class="form-label">Выберите период бронирования</label>
+            <input type="date" id="start-date" class="form-control mb-2" placeholder="Начальная дата">
+            <input type="date" id="end-date" class="form-control" placeholder="Конечная дата">
         </div>
 
         <!-- step 4 -->
         <div id="step4" class="mb-3">
-            <label for="comment" class="form-label">Why Do You Need This Server?</label>
-            <textarea id="comment" class="form-control" rows="4" placeholder="Enter your comment"></textarea>
+            <label for="comment" class="form-label">Зачем нужен сервер?</label>
+            <textarea id="comment" class="form-control" rows="4" placeholder="Введите комментарий"></textarea>
         </div>
 
         <div id="step5" class="mt-4">
-            <a href="/booking_list" class="btn btn-primary w-100" id="submit-btn">Submit</a>
+            <a href="/booking_list" class="btn btn-primary w-100" id="submit-btn">Отправить</a>
         </div>        
     </div>
 
