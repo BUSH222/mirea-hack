@@ -1,69 +1,72 @@
-const cpuLoadData = {};
-const ramUsageData = {};
-const serverNames = [];
+const chartData = {
+    cpu: Array(10).fill(null), // Initialize with 10 null values for CPU data
+    ram: Array(10).fill(null) // Initialize with 10 null values for RAM data
+};
 
-const colors = ['#E60000', '#32CD32', '#0000FF']
-
-const timeLabels = Array(10).fill('');
+const timeLabels = Array(10).fill(''); // Initialize with empty time labels
+const colors = {
+    cpu: '#E60000', // Red for CPU
+    ram: '#32CD32'  // Green for RAM
+};
 
 // Function to fetch server data
 function fetchServerData() {
     fetch('/admin_panel/full_server_status')
         .then(response => response.json())
         .then(data => {
-            updateCharts(data);
+            updateChart(data);
         })
         .catch(error => console.error('Error fetching server data:', error));
 }
 
-// Function to update charts with fetched data
-function updateCharts(data) {
-    // Update server names
-    serverNames.length = 0;
+// Function to update the chart with fetched data
+function updateChart(data) {
     const currentTime = new Date().toLocaleTimeString('en-GB', { hour12: false });
 
+    // Update time labels
     if (timeLabels.length >= 10) {
-        timeLabels.shift();
+        timeLabels.shift(); // Remove the oldest timestamp
     }
     timeLabels.push(currentTime);
 
-    for (const server in data) {
-        if (data.hasOwnProperty(server)) {
-            serverNames.push(server);
-            if (!cpuLoadData[server]) {
-                cpuLoadData[server] = Array(10).fill(null); // Initialize with 10 null values
-                ramUsageData[server] = Array(10).fill(null); // Initialize with 10 null values
-            }
-            cpuLoadData[server].push(data[server].cpu);
-            ramUsageData[server].push(data[server].ram);
+    // Update CPU and RAM data
+    chartData.cpu.push(data.cpu);
+    chartData.ram.push(data.ram);
 
-            // Limit to 10 data points
-            if (cpuLoadData[server].length > 10) cpuLoadData[server].shift();
-            if (ramUsageData[server].length > 10) ramUsageData[server].shift();
-        }
-    }
+    // Limit to 10 data points
+    if (chartData.cpu.length > 10) chartData.cpu.shift();
+    if (chartData.ram.length > 10) chartData.ram.shift();
 
-    // Redraw the charts with new data
-    drawChart(cpuLoadChart, cpuLoadData, 'Нагрузка ЦП');
-    drawChart(cpuLoadChart, ramUsageData, 'Оперативная память');
+    // Redraw the chart with new data
+    drawChart();
 }
 
 // Function to draw the chart
-function drawChart(chart, data, label) {
-    const datasets = serverNames.map((server, index) => ({
-        label: server,
-        data: data[server],
-        borderColor: colors[index % colors.length],
-        fill: false
-    }));
+function drawChart() {
+    const datasets = [
+        {
+            label: 'CPU Load (%)',
+            data: chartData.cpu,
+            borderColor: colors.cpu,
+            backgroundColor: colors.cpu,
+            fill: false
+        },
+        {
+            label: 'RAM Usage (%)',
+            data: chartData.ram,
+            borderColor: colors.ram,
+            backgroundColor: colors.ram,
+            fill: false
+        }
+    ];
 
-    chart.data.labels = timeLabels;
-    chart.data.datasets = datasets;
-    chart.update();
+    serverChart.data.labels = timeLabels;
+    serverChart.data.datasets = datasets;
+    serverChart.update();
 }
 
-// Create the charts
-const cpuLoadChart = new Chart(document.getElementById('cpuLoadChart').getContext('2d'), {
+// Create the chart
+const serverChart = new Chart(document.getElementById('basechart').getContext('2d'), {
     type: 'line',
     data: {
         labels: timeLabels,
@@ -76,7 +79,7 @@ const cpuLoadChart = new Chart(document.getElementById('cpuLoadChart').getContex
                 position: 'top'
             },
             title: {
-                display: false,
+                display: false
             }
         },
         scales: {
@@ -95,7 +98,6 @@ const cpuLoadChart = new Chart(document.getElementById('cpuLoadChart').getContex
         animation: false
     }
 });
-
 
 // Fetch server data every 5 seconds
 setInterval(fetchServerData, 5000);

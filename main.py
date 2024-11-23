@@ -27,19 +27,20 @@ def _load_user(uid):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return 'рррр рав ваф ваф'
 
 
 @app.route('/book_server', methods=['GET', 'POST'])
 @login_required
 def book_server():
     os = request.args.get('os')
+    email = request.args.get('email')
     comment = request.args.get('comment')
     end_time = request.args.get('end_time')
     if request.method == 'POST':
         try:
-            cur.execute("INSERT INTO requests (user_id, os, user_comment, start_time, end_time)\
-                        VALUES(%s, %s, CURRENT_TIMESTAMP, %s, %s)", (current_user.id, os, comment, end_time))
+            cur.execute("INSERT INTO requests (user_id, email, os, user_comment, start_time, end_time)\
+                        VALUES(%s, %s, %s CURRENT_TIMESTAMP, %s, %s)", (current_user.id, email, os, comment, end_time))
         except Exception as e:
             print(e)
             abort(500)

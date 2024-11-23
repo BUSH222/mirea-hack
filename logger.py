@@ -20,7 +20,7 @@ import logging
 from dbloader import connect_to_db
 
 
-def log_event(event_description: str, log_level=logging.DEBUG) -> None:
+def log_event(event_description: str, log_level=logging.DEBUG, **kwargs) -> None:
     conn, cur = connect_to_db()
     try:
         cur.execute("INSERT INTO logs (log_time, log_text) VALUES (NOW(), %s);", (event_description, ))

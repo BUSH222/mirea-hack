@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, jsonify
-from flask_login import LoginManager, login_required
+from flask_login import LoginManager, login_required, login_user
 from dbloader import connect_to_db
 from logger import log_event
 from login import check_isAdmin
+from login import User
 import psutil
 import random
 import string
@@ -92,6 +93,31 @@ def admin_panel_community_delete_account():
         return f'Error: {e}'
 
 
+@admin_app.route('/admin_panel/requests', methods=['GET', 'POST'])
+@login_required
+@check_isAdmin
+def admin_panel_requests():
+    if request.method == 'GET':
+        cur.execute("SELECT id, user_id, email, user_comment, start_time, end_time")
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        cur.execute("SELECT id, name, password, isAdmin FROM users WHERE name = %s", (username, ))
+        user_data = cur.fetchone()
+
+        if user_data:
+            if user_data[2] == password and len(password) < 32:
+                user = User(*user_data)
+                login_user(user)
+                return 'OK'
+            else:
+                return "Invalid username or password"
+        else:
+            return 'User does not exist '
+    return render_template('login.html')
+
+
 @admin_app.route('/admin_panel/community/view_account_info')
 @login_required
 @check_isAdmin
@@ -153,12 +179,7 @@ def admin_panel_community_set_account_info():
     Args:
         id (int): User's id.
         name (str): User's name.
-        email (str): User's email.
         password (str): User's password
-        points (int): User's activity points.
-        role (str): User's roles.
-            Organised as a sorted string of values 0-5, each of them being a unique role identifier.
-
     Returns:
         str: 'Success!' if everything went ok.
              'Error: {error desciption}' if something went wrong.
@@ -179,10 +200,33 @@ def admin_panel_community_set_account_info():
     return 'Success'
 
 
+@admin_app.route('/admin_panel/community/prune_account')
+@login_required
+@check_isAdmin
+def prune_account():
+    uid = request.args.get('user')
+    try:
+        cur.execute("""DELETE FROM request_servers
+WHERE request_id IN (
+    SELECT id
+    FROM requests
+    WHERE user_id = %s
+);
+DELETE FROM requests
+WHERE user_id = %s;""", (uid, uid))
+        conn.commit()
+        log_event(f"Pruned user account, id: {uid}", log_level=20)
+        return 'Success!'
+    except Exception as e:
+        conn.rollback()
+        log_event(f"Error pruning user account, id: {uid}", log_level=30)
+        return f'Error: {e}'
+
+
 @admin_app.route('/admin_panel/full_server_status', methods=['GET'])
 @login_required
 @check_isAdmin
-def full_server_status():  # TODO
+def full_server_status():
     """Returns the server statuses for all microservices running except postgres database.
 
     Returns:
@@ -192,3 +236,4 @@ def full_server_status():  # TODO
                             'cpu': psutil.cpu_percent()}
 
     return jsonify(master_server_status)
+

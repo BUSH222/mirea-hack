@@ -17,15 +17,7 @@ async function findUserData() {
 
         document.getElementById('user-id').value = data[0];
         document.getElementById('name').value = data[1];
-        document.getElementById('email').value = data[2];
-        document.getElementById('password').value = data[3];
-        document.getElementById('points').value = data[4];
-
-        // Set roles checkboxes
-        const roles = data[5].split(''); // Assuming roles are returned as a comma-separated string
-        document.querySelectorAll('input[name="role"]').forEach(checkbox => {
-            checkbox.checked = roles.includes(checkbox.value);
-        });
+        document.getElementById('password').value = data[2];
 
         document.getElementById('user-data-section').style.display = 'block';
     } catch (error) {
@@ -37,15 +29,10 @@ async function findUserData() {
 async function updateUserData() {
     const uid = document.getElementById('user-id').value;
     const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const points = document.getElementById('points').value;
-
-    // Collect roles
-    const roles = Array.from(document.querySelectorAll('input[name="role"]:checked')).map(checkbox => checkbox.value).join('');
 
     try {
-        const response = await fetch(`/admin_panel/community/set_account_info?user=${uid}&name=${name}&email=${email}&password=${password}&points=${points}&role=${roles}`);
+        const response = await fetch(`/admin_panel/community/set_account_info?user=${uid}&name=${name}&password=${password}`);
         const result = await response.text();
         alert(result)
     } catch (error) {
