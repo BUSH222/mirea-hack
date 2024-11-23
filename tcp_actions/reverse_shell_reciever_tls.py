@@ -12,9 +12,9 @@ server_socket.bind((host, port))
 server_socket.listen(1)
 print(f"Сервер запущен на {host}:{port}.Ожидание подключения...")
 server_socket = ssl.wrap_socket(server_socket,
-                                 keyfile="path/to/server_key.pem",
-                                 certfile="path/to/server_cert.pem",
-                                 server_side=True)
+                                keyfile="path/to/server_key.pem",
+                                сertfile="path/to/server_cert.pem",
+                                server_side=True)
 
 conn, addr = server_socket.accept()
 print(f"Подключено к {addr}")

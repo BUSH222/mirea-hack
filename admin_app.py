@@ -1,15 +1,12 @@
 from flask import Blueprint, render_template, request, jsonify
-from flask_login import LoginManager, login_required, login_user
+from flask_login import LoginManager, login_required
 from dbloader import connect_to_db
 from logger import log_event
 from login import check_isAdmin
-from login import User
 import psutil
 import random
 import string
-from tcp_actions.reverse_shell_sender import send_command
 from settings_loader import get_processor_settings
-from os_alloc_changer import change_os_on_pxe_server
 admin_app = Blueprint('admin_app', __name__)
 conn, cur = connect_to_db()
 
@@ -131,6 +128,7 @@ def admin_panel_view_request():
             log_event("Error create account:", log_level=30, kwargs=e)
             return f'Error: {e}'
 
+
 @admin_app.route('/admin_panel/community/view_account_info')
 @login_required
 @check_isAdmin
@@ -176,9 +174,8 @@ def admin_panel_community_create_profile():
             cur.execute("SELECT 1 FROM users WHERE name = %s", (name,))
             if cur.fetchone() is not None:
                 return 'Логин занят'
-            
             cur.execute('INSERT INTO users (name, password, isAdmin) VALUES(%s, %s, %s)',
-                        (name, password, isAdmin))  
+                        (name, password, isAdmin))
             conn.commit()
             log_event("Create account:", log_level=20)
             return 'Success'
@@ -258,4 +255,3 @@ def full_server_status():
                             'cpu': psutil.cpu_percent()}
 
     return jsonify(master_server_status)
-

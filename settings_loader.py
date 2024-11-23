@@ -1,5 +1,4 @@
 import json
-import os
 
 
 def load_json(file_name):
@@ -23,5 +22,3 @@ def get_temp_directory():
 
 
 settings = get_processor_settings()
-
-

@@ -1,5 +1,6 @@
 import socket
 
+
 def send_command(command, host, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
