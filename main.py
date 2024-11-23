@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, abort
+from flask import Flask, render_template, request, redirect, url_for
 from login import app_login, load_user
 from admin_app import admin_app
 from flask_login import LoginManager, login_required, current_user
@@ -8,7 +8,6 @@ from datetime import datetime
 import random
 from settings_loader import get_processor_settings
 from os_alloc_changer import change_os_on_pxe_server
-from datetime import datetime
 from mail_sender import send_mail
 from tcp_actions.reverse_shell_sender import send_command
 
@@ -31,18 +30,19 @@ app.register_blueprint(admin_app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'app_login.login'
 
+
 def fetch_data_from_database():
-    
     current_date = datetime.now().strftime("%Y-%m-%d")
-    cur.execute(f"SELECT * FROM requests WHERE accepted = true and start_time={current_date} and requiers_manual_approval=false")
+    cur.execute("SELECT * FROM requests\
+    WHERE accepted = true and start_time=%s and requiers_manual_approval=false", (current_date))
     requests_accepted = list(cur.fetchall())
     for ticket in requests_accepted:
-        cur.execute("SELECT id FROM servers WHERE os = %s",(ticket[3]))
+        cur.execute("SELECT id FROM servers WHERE os = %s", (ticket[3]))
         all_servers = list(cur.fetchall())
         cur.execute("SELECT id FROM request_servers")
         busy_servers = cur.fetchall()
         for serv in busy_servers:
-            for i in range(len(all_servers),-1):
+            for i in range(len(all_servers), -1):
                 if serv == all_servers[i]:
                     all_servers.pop(i)
         if all_servers != []:
@@ -50,14 +50,16 @@ def fetch_data_from_database():
                 choosen_server = str(random.choice(requests_accepted)[0])
                 username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
-                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd', settings[choosen_server], settings["port"])
-                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)", (ticket[0], choosen_server))
+                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                             settings[choosen_server], settings["port"])
+                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
+                            (ticket[0], choosen_server))
                 conn.commit()
                 send_mail(ticket[2], username+' '+password)
-                
+
             except Exception:
                 conn.rollback()
-                raise(Exception)
+                raise Exception
         else:
             try:
                 choosen_server = str(random.choice(requests_accepted)[0])
@@ -65,13 +67,15 @@ def fetch_data_from_database():
                 send_command('sudo reboot')
                 username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
-                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd', settings[choosen_server], settings["port"])
-                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)", (ticket[0], choosen_server))
+                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                             settings[choosen_server], settings["port"])
+                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
+                            (ticket[0], choosen_server))
                 conn.commit()
                 send_mail(ticket[2], username+' '+password)
             except Exception:
                 conn.rollback()
-                raise(Exception)
+                raise Exception
     cur.execute(f"SELECT * FROM requests WHERE accepted = true and end_time<{current_date}")
     tickets_overdue = list(cur.fetchall())
     for ticket in tickets_overdue:
@@ -80,21 +84,21 @@ def fetch_data_from_database():
             send_command(f'sudo userdel -r {username}')
             cur.execute("DELETE FROM request_servers WHERE request_id = %s", (ticket[0]))
             conn.commit()
-            send_mail(ticket[2],"Доступ к машине завершен")
+            send_mail(ticket[2], "Доступ к машине завершен")
         except Exception:
             conn.rollback()
-            raise(Exception)
+            raise Exception
     cur.execute(f"SELECT * FROM requests WHERE accepted = true and start_date - {current_date}<865")
     admin_alert_tickets = list(cur.fetchone)
-    cur.execute(f"SELECT user_id FROM users ")
+    cur.execute("SELECT user_id FROM users ")
     for ticket in admin_alert_tickets:
         send_mail()
-
 
 
 @scheduler.task('interval', hours=1)
 def scheduled_task():
     fetch_data_from_database()
+
 
 @login_manager.user_loader
 def _load_user(uid):
