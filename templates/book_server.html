@@ -73,47 +73,88 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const emailInput = document.getElementById('email-input');
-        const osSelect = document.getElementById('os-select');
-        const customInput = document.querySelector('.custom-input');
-        const step2 = document.getElementById('step2');
-        const step3 = document.getElementById('step3');
-        const step4 = document.getElementById('step4');
-        const step5 = document.getElementById('step5');
-        const startDate = document.getElementById('start-date');
-        const endDate = document.getElementById('end-date');
+    const emailInput = document.getElementById('email-input');
+    const osSelect = document.getElementById('os-select');
+    const customInput = document.querySelector('.custom-input');
+    const customOsInput = document.getElementById('custom-os');
+    const startDate = document.getElementById('start-date');
+    const endDate = document.getElementById('end-date');
+    const commentInput = document.getElementById('comment');
+    const submitBtn = document.getElementById('submit-btn');
 
-        emailInput.addEventListener('input', function () {
-            if (emailInput.value.trim()) {
-                step2.style.display = 'block';
-            }
-        });
+    customInput.style.display = 'none';
 
-        osSelect.addEventListener('change', function () {
-            if (this.value === 'custom') {
-                customInput.style.display = 'block';
-            } else {
-                customInput.style.display = 'none';
-            }
-            step3.style.display = 'block';
-        });
+    emailInput.addEventListener('input', function () {
+        if (emailInput.value.trim()) {
+            document.getElementById('step2').style.display = 'block';
+        }
+    });
 
-        startDate.addEventListener('change', showStep4);
-        endDate.addEventListener('change', showStep4);
+    osSelect.addEventListener('change', function () {
+        if (osSelect.value === 'custom') {
+            customInput.style.display = 'block';
+        } else {
+            customInput.style.display = 'none';
+        }
+        document.getElementById('step3').style.display = 'block';
+    });
 
-        function showStep4() {
-            if (startDate.value && endDate.value) {
-                step4.style.display = 'block';
-            }
+    function showStep4() {
+        if (startDate.value && endDate.value) {
+            document.getElementById('step4').style.display = 'block';
+        }
+    }
+    startDate.addEventListener('change', showStep4);
+    endDate.addEventListener('change', showStep4);
+
+    commentInput.addEventListener('input', function () {
+        if (commentInput.value.trim()) {
+            document.getElementById('step5').style.display = 'block';
+        }
+    });
+
+    submitBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        const email = emailInput.value.trim();
+        const operatingSystem = osSelect.value === 'custom' ? customOsInput.value.trim() : osSelect.value;
+        const start = startDate.value;
+        const end = endDate.value;
+        const comment = commentInput.value.trim();
+
+        if (!email || !operatingSystem || !start || !end) {
+            alert('Please fill in all required fields.');
+            return;
         }
 
-        const commentInput = document.getElementById('comment');
-        commentInput.addEventListener('input', function () {
-            if (commentInput.value.trim()) {
-                step5.style.display = 'block';
-            }
-        });
+        const data = {
+            email: email,
+            operating_system: operatingSystem,
+            start_date: start,
+            end_date: end,
+            comment: comment
+        };
 
+
+        fetch('/book_server', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Server booking request submitted successfully!');
+            } else {
+                alert('Failed to book server. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
     </script>
 </body>
 </html>

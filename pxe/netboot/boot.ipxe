@@ -1,0 +1,4 @@
+#!ipxe
+initrd tftp://192.168.2.2/Core.iso
+chain tftp://192.168.2.2/memdisk iso
+sanboot

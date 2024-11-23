@@ -50,6 +50,8 @@ def book_server():
 @app.route('/booking_list', methods=['GET'])
 @login_required
 def booking_list():
+    if current_user.isAdmin:
+        return redirect(url_for('admin_app.admin_panel'))
     cur.execute(
         "SELECT id, os, start_time - CURRENT_TIMESTAMP AS start_time, accepted \
         FROM requests WHERE user_id = %s",
@@ -72,7 +74,7 @@ def booking_list():
 @login_required
 def view_booking():
     booking_id = request.args.get('id')
-    cur.execute("SELECT id, os, user_comment, start_time, end_time, accepted\
+    cur.execute("SELECT id, email, os, user_comment, start_time, end_time, accepted\
                 FROM requests WHERE id = %s AND user_id = %s", (booking_id, current_user.id))
     data = cur.fetchone()
 

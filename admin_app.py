@@ -98,15 +98,15 @@ def admin_panel_community_delete_account():
 @check_isAdmin
 def admin_panel_requests():
     if request.method == 'GET':
-        cur.execute("SELECT id, name, email, user_comment, start_time, end_time, requires_manual_approval \
-                    FROM requests JOIN users ON requests.user_id = users.id")
-        
+        cur.execute("SELECT r.id, u.name, r.email, r.user_comment, r.start_time, r.end_time, r.requires_manual_approval \
+                    FROM requests r JOIN users u ON r.user_id = u.id")
+        data = cur.fetchall()
+        render_template('requests.html', data=data)
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         cur.execute("SELECT id, name, password, isAdmin FROM users WHERE name = %s", (username, ))
         user_data = cur.fetchone()
-
         if user_data:
             if user_data[2] == password and len(password) < 32:
                 user = User(*user_data)
@@ -116,7 +116,7 @@ def admin_panel_requests():
                 return "Invalid username or password"
         else:
             return 'User does not exist '
-    return render_template('login.html')
+    return render_template('requests.html')
 
 
 @admin_app.route('/admin_panel/community/view_account_info')
@@ -157,10 +157,13 @@ def admin_panel_community_view_account_info():
 @check_isAdmin
 def admin_panel_community_create_profile():
     if request.method == 'POST':
-        name = request.args.get('name')
-        password = request.args.get('password')
-        isAdmin = request.args.get('isAdmin')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        isAdmin = request.form.get('isAdmin')
         try:
+            cur.execute("SELECT 1 FROM users WHERE name = %s", (name,))
+            if cur.fetchone is not None:
+                return 'Логин занят'
             cur.execute('INSERT INTO users (name, password, isAdmin) VALUES(%s, %s, %s)',
                         (name, password, isAdmin))
             conn.commit()
