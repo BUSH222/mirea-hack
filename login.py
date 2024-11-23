@@ -62,31 +62,6 @@ def login():
     return render_template('login.html')
 
 
-@app_login.route('/register', methods=['GET', 'POST'])
-def register():
-    """Register a new user."""
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        confirm_password = request.form["confirm_password"]
-
-        cur.execute('SELECT 1 FROM users WHERE name = %s', (username,))
-        if cur.fetchone() is not None:
-            return 'Логин занят'
-        elif confirm_password == password:
-            cur.execute("INSERT INTO users (name, password) VALUES (%s, %s) \
-                        RETURNING id, name, password, idAdmin", (username, password,))
-            conn.commit()
-            new_user_data = cur.fetchone()
-            new_user = User(*new_user_data)
-            login_user(new_user)
-            return 'OK'
-        else:
-            return 'Пароли не совпадают'
-
-    return render_template('register.html')
-
-
 @app_login.route('/logout')
 @login_required
 def logout():
