@@ -7,9 +7,14 @@ from login import User
 import psutil
 import random
 import string
-
+from tcp_actions.reverse_shell_sender import send_command
+from keygen import generate_secure_key
+from settings_loader import get_processor_settings
+from os_alloc_changer import change_os_on_pxe_server
 admin_app = Blueprint('admin_app', __name__)
 conn, cur = connect_to_db()
+
+settings = get_processor_settings
 
 login_manager = LoginManager(admin_app)
 login_manager.login_view = 'app_login.login'
@@ -93,31 +98,38 @@ def admin_panel_community_delete_account():
         return f'Error: {e}'
 
 
-@admin_app.route('/admin_panel/requests', methods=['GET', 'POST'])
+@admin_app.route('/admin_panel/requests')
 @login_required
 @check_isAdmin
 def admin_panel_requests():
-    if request.method == 'GET':
-        cur.execute("SELECT r.id, u.name, r.email, r.user_comment, r.start_time, r.end_time, r.requires_manual_approval \
-                    FROM requests r JOIN users u ON r.user_id = u.id")
-        data = cur.fetchall()
-        render_template('requests.html', data=data)
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        cur.execute("SELECT id, name, password, isAdmin FROM users WHERE name = %s", (username, ))
-        user_data = cur.fetchone()
-        if user_data:
-            if user_data[2] == password and len(password) < 32:
-                user = User(*user_data)
-                login_user(user)
-                return 'OK'
-            else:
-                return "Invalid username or password"
-        else:
-            return 'User does not exist '
-    return render_template('requests.html')
+    cur.execute("SELECT r.id, u.name, r.email, r.user_comment, r.start_time, r.end_time, r.requires_manual_approval\
+                FROM requests r JOIN users u ON r.user_id = u.id")
+    data = cur.fetchall()
+    print(data)
+    return render_template('requests.html', data=data)
 
+
+@admin_app.route('/admin_panel/view_request')
+@login_required
+@check_isAdmin
+def admin_panel_view_request():
+    id = request.form.get('id')
+    if request.method == 'GET':
+        cur.execute("SELECT r.id, u.name, r.email, r.user_comment, r.start_time, r.end_time, r.requires_manual_approval\
+                    FROM requests r JOIN users u ON r.user_id = u.id WHERE id = %s" (id,))
+        data = cur.fetchall()
+        return render_template("view_request", data=data)
+    if request.method == 'POST':
+        try:
+            cur.execute('UPDATE requests SET accepted = True WHERE id = %s )', (id,))
+            conn.commit()
+            log_event("Create account:", log_level=20)
+            return 'Success'
+        except Exception as e:
+            print(e)
+            conn.rollback()
+            log_event("Error create account:", log_level=30, kwargs=e)
+            return f'Error: {e}'
 
 @admin_app.route('/admin_panel/community/view_account_info')
 @login_required
@@ -162,17 +174,21 @@ def admin_panel_community_create_profile():
         isAdmin = request.form.get('isAdmin')
         try:
             cur.execute("SELECT 1 FROM users WHERE name = %s", (name,))
-            if cur.fetchone is not None:
+            if cur.fetchone() is not None:
                 return 'Логин занят'
+            
             cur.execute('INSERT INTO users (name, password, isAdmin) VALUES(%s, %s, %s)',
-                        (name, password, isAdmin))
+                        (name, password, isAdmin))  
             conn.commit()
             log_event("Create account:", log_level=20)
+            return 'Success'
         except Exception as e:
+            print(e)
             conn.rollback()
             log_event("Error create account:", log_level=30, kwargs=e)
             return f'Error: {e}'
-    return render_template('create_profile.html')
+    else:
+        return render_template('create_profile.html')
 
 
 @admin_app.route('/admin_panel/community/set_account_info')

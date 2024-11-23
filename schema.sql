@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS requests (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     email VARCHAR(32) DEFAULT 'example@example.com',
     os VARCHAR(32),

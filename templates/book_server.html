@@ -11,7 +11,7 @@
     <!-- navbar -->
     <nav class="navbar navbar-expand-lg navbar-gradient fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/">
                 <img src="/static/logo.png" alt="Logo" class="d-inline-block align-text-top">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,7 +20,7 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="btn btn-light" href="/login">Logout</a>
+                        <a class="btn btn-light" href="/login">Выйти</a>
                     </li>
                 </ul>
             </div>
@@ -118,6 +118,7 @@
 
         const email = emailInput.value.trim();
         const operatingSystem = osSelect.value === 'custom' ? customOsInput.value.trim() : osSelect.value;
+        console.log(operatingSystem)
         const start = startDate.value;
         const end = endDate.value;
         const comment = commentInput.value.trim();
@@ -136,25 +137,20 @@
         };
 
 
-        fetch('/book_server', {
+        const params = new URLSearchParams(data).toString();
+
+        fetch(`/book_server?${params}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (response.ok) {
-                alert('Server booking request submitted successfully!');
-            } else {
-                alert('Failed to book server. Please try again.');
+                'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred. Please try again.');
+        .then(response => response.text())
+            .then(data => {
+                alert(data)
+            })
+            .catch(error => console.error('Error:', error));
         });
-    });
     </script>
 </body>
 </html>

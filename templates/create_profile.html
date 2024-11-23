@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <h1 class="mt-5">Create User Profile</h1>
-        <form action="/admin_panel/community/create_profile" method="post">
+        <form id="BRUH">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" id="name" name="name" required>
@@ -25,26 +25,27 @@
                     <option value="True">Yes</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary" onclick="submitPassword()">Create Profile</button>
+            <button type="submit" class="btn btn-primary" >Create Profile</button>
         </form>
     </div>
     <script>
-        function submitPassword() {
+        document.getElementById("BRUH").addEventListener("submit", function(event){
+            event.preventDefault()
             const formData = new FormData();
             formData.append("name", document.getElementById("name").value);
+            formData.append("password", document.getElementById("password").value);
+            formData.append("isAdmin", document.getElementById("isAdmin").value);
 
-            fetch('admin_panel/community/create_profile', {
+            fetch('/admin_panel/community/create_profile', {
                 method: 'POST',
                 body: formData,
             })
             .then(response => response.text())
             .then(data => {
-                if (data === 'Логин занят') {
-                    alert('Имя пользователя уже занято');
-                }
+                alert(data)
             })
             .catch(error => console.error('Error:', error));
-        }
+        });
     </script>
 </body>
 </html>

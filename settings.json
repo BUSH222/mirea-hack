@@ -1,2 +1,7 @@
-{"mail_login":"",
-"mail_password":""}
+{
+    "mail_login":"",
+    "mail_password":"",
+    "pass_gen_len":32,
+    "port":8080,
+    "12":"192.168.142.122"
+}

@@ -13,8 +13,7 @@ def load_json(file_name):
 
 
 def get_processor_settings():
-    debug_settings_file_name = 'debug_settings.json'
-    settings_file_name = 'settings.json' if os.name != 'nt' or not os.path.exists(debug_settings_file_name) else debug_settings_file_name
+    settings_file_name = 'settings.json'
     settings = load_json(settings_file_name)
     return settings
 

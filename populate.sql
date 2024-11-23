@@ -13,11 +13,11 @@ INSERT INTO servers (os) VALUES
 ('Debian 11');
 
 -- Insert data into requests
-INSERT INTO requests (id, user_id, os, user_comment, start_time, end_time, accepted, requires_manual_approval) VALUES
-(1, 2, 'Ubuntu 22.04', 'Need a test environment', '2024-11-22 10:00:00', '2024-11-22 14:00:00', NULL, TRUE),
-(2, 3, 'Windows 10', 'Install custom software', '2024-11-23 09:00:00', '2024-11-23 13:00:00', FALSE, TRUE),
-(3, 4, 'CentOS 8', 'Database testing', '2024-11-24 08:00:00', '2024-11-24 12:00:00', NULL, FALSE),
-(4, 3, 'Ubuntu 20.04', 'Web application testing', '2024-11-25 15:00:00', '2024-11-25 19:00:00', TRUE, FALSE);
+INSERT INTO requests (user_id, os, user_comment, start_time, end_time, accepted, requires_manual_approval) VALUES
+(2, 'Ubuntu 22.04', 'Need a test environment', '2024-11-22 10:00:00', '2024-11-22 14:00:00', NULL, TRUE),
+(3, 'Windows 10', 'Install custom software', '2024-11-23 09:00:00', '2024-11-23 13:00:00', FALSE, TRUE),
+(4, 'CentOS 8', 'Database testing', '2024-11-24 08:00:00', '2024-11-24 12:00:00', NULL, FALSE),
+(3, 'Ubuntu 20.04', 'Web application testing', '2024-11-25 15:00:00', '2024-11-25 19:00:00', TRUE, FALSE);
 
 -- Insert data into request_servers
 INSERT INTO request_servers (request_id, server_id) VALUES
