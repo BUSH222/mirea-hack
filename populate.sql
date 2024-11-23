@@ -1,9 +1,9 @@
 -- Insert data into users
 INSERT INTO users (name, password, isAdmin) VALUES
-('admin1', 'hashed_password_1', TRUE),
-('user1', 'hashed_password_2', FALSE),
-('user2', 'hashed_password_3', FALSE),
-('user3', 'hashed_password_4', FALSE);
+('bob', 'p1', TRUE),
+('user1', 'p2', FALSE),
+('user2', 'p3', FALSE),
+('user3', 'p4', FALSE);
 
 -- Insert data into servers
 INSERT INTO servers (os) VALUES

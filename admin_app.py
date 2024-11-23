@@ -1,8 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from flask_login import LoginManager, login_required
 from dbloader import connect_to_db
 from logger import log_event
-from secrets import token_urlsafe
 from login import check_isAdmin
 from collections import deque
 import time
@@ -12,18 +11,16 @@ import psutil
 import random
 import string
 
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = token_urlsafe(16)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
+admin_app = Blueprint('admin_app', __name__)
 conn, cur = connect_to_db()
+
+login_manager = LoginManager(admin_app)
+login_manager.login_view = 'app_login.login'
 
 request_timestamps = deque()
 
 
-@app.before_request
+@admin_app.before_request
 def track_requests():
     """Track the timestamp of each request. Update"""
     global request_timestamps
@@ -40,7 +37,7 @@ def generate_random_string():
     return ''.join(random.choices(characters, k=length))
 
 
-@app.route('/admin_panel')
+@admin_app.route('/admin_panel')
 @login_required
 @check_isAdmin
 def admin_panel():
@@ -48,7 +45,7 @@ def admin_panel():
     return render_template('admin_panel.html')
 
 
-@app.route('/admin_panel/logs')
+@admin_app.route('/admin_panel/logs')
 @login_required
 @check_isAdmin
 def admin_panel_logs():
@@ -56,7 +53,7 @@ def admin_panel_logs():
     return render_template('admin_panel_logs.html')
 
 
-@app.route('/admin_panel/logs/get_logs')
+@admin_app.route('/admin_panel/logs/get_logs')
 @login_required
 @check_isAdmin
 def admin_panel_get_top100_logs():
@@ -73,7 +70,7 @@ def admin_panel_get_top100_logs():
     return jsonify(cur.fetchall())
 
 
-@app.route('/admin_panel/community')
+@admin_app.route('/admin_panel/community')
 @login_required
 @check_isAdmin
 def admin_panel_community():
@@ -82,7 +79,7 @@ def admin_panel_community():
     return render_template('admin_panel_community.html')
 
 
-@app.route('/admin_panel/community/delete_account')
+@admin_app.route('/admin_panel/community/delete_account')
 @login_required
 @check_isAdmin
 def admin_panel_community_delete_account():
@@ -111,7 +108,7 @@ def admin_panel_community_delete_account():
         return f'Error: {e}'
 
 
-@app.route('/admin_panel/community/view_account_info')
+@admin_app.route('/admin_panel/community/view_account_info')
 @login_required
 @check_isAdmin
 def admin_panel_community_view_account_info():
@@ -148,7 +145,7 @@ def admin_panel_community_view_account_info():
         return f'Error: {e}'
 
 
-@app.route('/admin_panel/community/set_account_info')
+@admin_app.route('/admin_panel/community/set_account_info')
 @login_required
 @check_isAdmin
 def admin_panel_community_set_account_info():
@@ -184,7 +181,7 @@ def admin_panel_community_set_account_info():
     return 'Success'
 
 
-@app.route('/admin_panel/full_server_status', methods=['GET'])
+@admin_app.route('/admin_panel/full_server_status', methods=['GET'])
 @login_required
 @check_isAdmin
 def full_server_status():  # TODO
@@ -213,15 +210,9 @@ def full_server_status():  # TODO
                     "Admin panel": admin_panel_status})
 
 
-@app.route('/admin_panel/help')
+@admin_app.route('/admin_panel/help')
 @login_required
 @check_isAdmin
 def admin_help():
     """Render the template for the admin help page."""
     return render_template("admin_help.html")
-
-
-if __name__ == "__main__":
-    app.run(port=5002, debug=True)
-    cur.close()
-    conn.close()

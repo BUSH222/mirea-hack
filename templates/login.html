@@ -20,32 +20,17 @@
                     <div class="password-container">
                         <input type="password" id="password" name="password" required>
                         <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password')">
-                            <img src="/static/img/eye.png" alt="Toggle Password Visibility" class="eye-icon">
+                            <img src="/static/eye.png" alt="Toggle Password Visibility" class="eye-icon">
                         </button>
                     </div>
                 </div>
                 <button type="submit" class="login-btn">Войти</button>
             </form>
-            <!-- socials -->
-            <div class="social-login">
-                <h3 class="login-title">Войти с помощью:</h3>
-                <div class="social-icons">
-                    <a href="login_yandex">
-                        <img src="/static/img/yandex_icon.png" alt="Yandex" class="social-icon">
-                    </a>
-                    <a href="/login_gmail">
-                        <img src="/static/img/google_icon.png" alt="Google" class="social-icon">
-                    </a>
-                    <a href="#">
-                        <img src="/static/img/vk_icon.png" alt="VK" class="social-icon">
-                    </a>
-                </div>
-            </div>
+
             
             <!-- registration btn -->
             <div class="register-section">
-                <p class="register-text">Ещё не зарегистрированы?</p>
-                <a href="register" class="register-btn">Зарегистрироваться</a>
+                <a onclick='alert("Попросите администратора создать вам аккаунт.")' class="register-text">Ещё не зарегистрированы?</p>
             </div>
         </div>
     </div>
@@ -81,7 +66,7 @@
             .then(response => response.text())
             .then(data => {
                 if (data === 'OK') {
-                    window.location.href = '/account';
+                    window.location.href = '/booking_list';
                 } else {
                     alert('Invalid username or password');
                 }

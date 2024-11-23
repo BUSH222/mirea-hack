@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from login import app_login, load_user
+from admin_app import admin_app
 from flask_login import LoginManager, login_required, current_user
 from dbloader import connect_to_db
 
@@ -12,6 +13,8 @@ app.jinja_env.auto_reload = True  # Remove in final version
 conn, cur = connect_to_db()
 
 app.register_blueprint(app_login)
+app.register_blueprint(admin_app)
+
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'app_login.login'
@@ -41,7 +44,7 @@ def book_server():
 @login_required
 def booking_list():
     cur.execute("SELECT id, os, start_time - CURRENT_TIMESTAMP AS start_time, accepted\
-                FROM users WHERE id = %s", (current_user.id))
+                FROM users WHERE id = %s", (current_user.id, ))
     data = cur.fetchall() or []
     return render_template('booking_list.html', data=data)
 
