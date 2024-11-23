@@ -113,49 +113,6 @@ h2 {
     color: #ff4c4c;
 }
 
-.table-hover {
-    color: #ffffff;
-    background-color: #1e1e1e;
-    border: 1px solid #444;
-}
-
-.table-hover th, .table-hover td {
-    color: #ffffff;
-    text-align: center;
-    vertical-align: middle;
-}
-
-.table-hover tbody tr:hover {
-    background-color: #333;
-    color: #ffffff;
-}
-
-.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
-    color: #ffffff;
-}
-
-.table-dark {
-    background-color: #121212;
-    color: #ffffff;
-}
-
-.table-hover td, .table-hover th {
-    padding: 10px;
-}
-
-.table {
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.clickable-row {
-    cursor: pointer;
-}
-
-.clickable-row:hover {
-    background-color: #444;
-}
-
 .help-widget {
     position: fixed;
     bottom: 20px;

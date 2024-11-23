@@ -4,11 +4,15 @@ from admin_app import admin_app
 from flask_login import LoginManager, login_required, current_user
 from dbloader import connect_to_db
 from flask_apscheduler import APScheduler
-from tcp_actions.reverse_shell_sender import send_command
-from keygen import generate_secure_key
+from datetime import datetime
 import random
+from settings_loader import get_processor_settings
+from os_alloc_changer import change_os_on_pxe_server
+from datetime import datetime
+from mail_sender import send_mail
+from tcp_actions.reverse_shell_sender import send_command
 
-
+settings = get_processor_settings
 app = Flask(__name__)
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Remove in final version
@@ -28,26 +32,65 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'app_login.login'
 
 def fetch_data_from_database():
-    pass_gen = generate_secure_key()
-    cur.execute("SELECT * FROM requests WHERE accepted = true and start_time={}")
+    
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    cur.execute(f"SELECT * FROM requests WHERE accepted = true and start_time={current_date} and requiers_manual_approval=false")
     requests_accepted = list(cur.fetchall())
     for ticket in requests_accepted:
         cur.execute("SELECT id FROM servers WHERE os = %s",(ticket[3]))
-        all_servers = cur.fetchall()
+        all_servers = list(cur.fetchall())
         cur.execute("SELECT id FROM request_servers")
-        requests_accepted = cur.fetchall()
-        for serv in all_servers:
-            for i in range(len(requests_accepted)):
-                pass
+        busy_servers = cur.fetchall()
+        for serv in busy_servers:
+            for i in range(len(all_servers),-1):
+                if serv == all_servers[i]:
+                    all_servers.pop(i)
+        if all_servers != []:
+            try:
+                choosen_server = str(random.choice(requests_accepted)[0])
+                username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
+                password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
+                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd', settings[choosen_server], settings["port"])
+                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)", (ticket[0], choosen_server))
+                conn.commit()
+                send_mail(ticket[2], username+' '+password)
+                
+            except Exception:
+                conn.rollback()
+                raise(Exception)
+        else:
+            try:
+                choosen_server = str(random.choice(requests_accepted)[0])
+                change_os_on_pxe_server(choosen_server, ticket[3])
+                send_command('sudo reboot')
+                username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
+                password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
+                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd', settings[choosen_server], settings["port"])
+                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)", (ticket[0], choosen_server))
+                conn.commit()
+                send_mail(ticket[2], username+' '+password)
+            except Exception:
+                conn.rollback()
+                raise(Exception)
+    cur.execute(f"SELECT * FROM requests WHERE accepted = true and end_time<{current_date}")
+    tickets_overdue = list(cur.fetchall())
+    for ticket in tickets_overdue:
+        try:
+            username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
+            send_command(f'sudo userdel -r {username}')
+            cur.execute("DELETE FROM request_servers WHERE request_id = %s", (ticket[0]))
+            conn.commit()
+            send_mail(ticket[2],"Доступ к машине завершен")
+        except Exception:
+            conn.rollback()
+            raise(Exception)
+    cur.execute(f"SELECT * FROM requests WHERE accepted = true and start_date - {current_date}<865")
+    admin_alert_tickets = list(cur.fetchone)
+    cur.execute(f"SELECT user_id FROM users ")
+    for ticket in admin_alert_tickets:
+        send_mail()
 
-    if requests_accepted != []:
-        choosen_server = random.choice(requests_accepted)[0]
-        send_command(f'sudo useradd -m "{username}" && echo "{username}:{pass_gen}" | sudo chpasswd', settings[choosen_server], settings["port"])
-    else:
-        choosen_server = random.choice(all_servers)
-        cur.execute("SELECT os from ser")
-        change_os_on_pxe_server(choosen_server, os)
-        send_command('sudo reboot')
+
 
 @scheduler.task('interval', hours=1)
 def scheduled_task():
@@ -72,6 +115,15 @@ def book_server():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         comment = request.args.get('comment')
+        cur.execute("""
+SELECT COUNT(*) FROM public.requests
+WHERE start_time < CAST(%s AS TIMESTAMP) AND end_time > CAST(%s AS TIMESTAMP);
+""", (end_date, start_date))
+        occupied = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM public.servers")
+        total = cur.fetchone()[0]
+        if total-occupied <= 0:
+            return 'All servers reserved for this time slot.'
         try:
             cur.execute("INSERT INTO requests (user_id, email, os, start_time, end_time, user_comment)\
                         VALUES(%s, %s, %s, %s, %s, %s)", (current_user.id, email, os, start_date, end_date, comment))

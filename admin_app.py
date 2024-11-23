@@ -8,7 +8,6 @@ import psutil
 import random
 import string
 from tcp_actions.reverse_shell_sender import send_command
-from keygen import generate_secure_key
 from settings_loader import get_processor_settings
 from os_alloc_changer import change_os_on_pxe_server
 admin_app = Blueprint('admin_app', __name__)
@@ -113,12 +112,13 @@ def admin_panel_requests():
 @login_required
 @check_isAdmin
 def admin_panel_view_request():
-    id = request.form.get('id')
+    id = request.args.get('id')
     if request.method == 'GET':
-        cur.execute("SELECT r.id, u.name, r.email, r.user_comment, r.start_time, r.end_time, r.requires_manual_approval\
-                    FROM requests r JOIN users u ON r.user_id = u.id WHERE id = %s" (id,))
-        data = cur.fetchall()
-        return render_template("view_request", data=data)
+        cur.execute("SELECT r.id, u.name, r.email, r.os, r.user_comment, r.start_time, r.end_time, \
+                    r.accepted, r.requires_manual_approval\
+                    FROM requests r JOIN users u ON r.user_id = u.id WHERE r.id = %s", (id,))
+        data = cur.fetchall()[0]
+        return render_template("view_request.html", data=data)
     if request.method == 'POST':
         try:
             cur.execute('UPDATE requests SET accepted = True WHERE id = %s )', (id,))
