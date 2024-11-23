@@ -79,8 +79,8 @@ def admin_panel_community_delete_account():
     """
     user_id = request.args.get('id')
     try:
-        cur.execute("UPDATE users SET name = %s, password = %s, email = %s, role = '' WHERE id = %s",
-                    (f'deleted_user_{user_id}', generate_random_string(), generate_random_string(), user_id))
+        cur.execute("UPDATE users SET name = %s, password = %s, isAdmin = False WHERE id = %s",
+                    (f'deleted_user_{user_id}', generate_random_string(), user_id))
         conn.commit()
         if cur.rowcount == 0:
             return 'Something went wrong.'
@@ -106,18 +106,14 @@ def admin_panel_community_view_account_info():
         json array:
             id (int): User's id.
             name (str): User's name.
-            email (str): User's email.
             password (str): User's password
-            points (int): User's activity points.
-            role (str): User's roles.
-                Organised as a sorted string of values 0-5, each of them being a unique role identifier.
 
         str: 'No results' if the search for the user returned nothing
              'Error: {error desciption}' if something went wrong.
     """
     user = request.args.get('user')
     try:
-        cur.execute('SELECT id, name, email, password, points, role FROM users WHERE name = %s', (user, ))
+        cur.execute('SELECT id, name, password, isAdmin FROM users WHERE name = %s', (user, ))
         roles_raw = cur.fetchone()
         if not roles_raw:
             return jsonify('No results')

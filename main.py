@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 from login import app_login, load_user
 from admin_app import admin_app
 from flask_login import LoginManager, login_required, current_user
@@ -33,10 +33,16 @@ def index():
 @app.route('/book_server', methods=['GET', 'POST'])
 @login_required
 def book_server():
-    if request.method == 'GET':
-        return render_template('book_server.html')
+    os = request.args.get('os')
+    comment = request.args.get('comment')
+    end_time = request.args.get('end_time')
     if request.method == 'POST':
-        return render_template('book_server.html')
+        try:
+            cur.execute("INSERT INTO requests (user_id, os, user_comment, start_time, end_time)\
+                        VALUES(%s, %s, CURRENT_TIMESTAMP, %s, %s)", (current_user.id, os, comment, end_time))
+        except Exception as e:
+            print(e)
+            abort(500)
     return render_template('book_server.html')
 
 

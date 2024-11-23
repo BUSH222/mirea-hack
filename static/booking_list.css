@@ -1,0 +1,30 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* navbar */
+.navbar-gradient {
+    background: linear-gradient(to right, #8dc641, #449dbb);
+    color: white;
+}
+.navbar-gradient .navbar-brand img {
+    width: 126px;
+    height: 37px;
+}
+.navbar-gradient .btn {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+}
+.navbar-gradient .btn:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* table */
+.table-hover a.btn {
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+}
