@@ -50,10 +50,22 @@ def book_server():
 @app.route('/booking_list', methods=['GET'])
 @login_required
 def booking_list():
-    cur.execute("SELECT id, os, start_time - CURRENT_TIMESTAMP AS start_time, accepted\
-                FROM requests WHERE id = %s", (current_user.id, ))
+    cur.execute(
+        "SELECT id, os, start_time - CURRENT_TIMESTAMP AS start_time, accepted \
+        FROM requests WHERE user_id = %s",
+        (current_user.id,)
+    )
     data = cur.fetchall() or []
-    return render_template('booking_list.html', data=data)
+    processed_data = [
+        {
+            "id": row[0],
+            "os": row[1],
+            "start_time": row[2],
+            "accepted": row[3],
+        }
+        for row in data
+    ]
+    return render_template('booking_list.html', data=processed_data)
 
 
 @app.route('/view_booking')
@@ -61,8 +73,9 @@ def booking_list():
 def view_booking():
     booking_id = request.args.get('id')
     cur.execute("SELECT id, os, user_comment, start_time, end_time, accepted\
-                FROM users WHERE id = %s AND user = %s", (booking_id, current_user.id))
+                FROM requests WHERE id = %s AND user_id = %s", (booking_id, current_user.id))
     data = cur.fetchone()
+
     if data is None:
         return redirect(url_for('book_server'))
     return render_template('view_booking.html', data=data)

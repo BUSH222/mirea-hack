@@ -98,8 +98,9 @@ def admin_panel_community_delete_account():
 @check_isAdmin
 def admin_panel_requests():
     if request.method == 'GET':
-        cur.execute("SELECT id, user_id, email, user_comment, start_time, end_time")
-
+        cur.execute("SELECT id, name, email, user_comment, start_time, end_time, requires_manual_approval \
+                    FROM requests JOIN users ON requests.user_id = users.id")
+        
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -151,22 +152,24 @@ def admin_panel_community_view_account_info():
         return f'Error: {e}'
 
 
-@admin_app.route('/admin_panel/community/create_profile')
+@admin_app.route('/admin_panel/community/create_profile', methods=['GET', 'POST'])
 @login_required
 @check_isAdmin
 def admin_panel_community_create_profile():
-    name = request.args.get('name')
-    password = request.args.get('password')
-    isAdmin = request.args.get('isAdmin')
-    try:
-        cur.execute('INSERT INTO users  (name, password, isAdmin) VALUES(%s, %s, %s)',
-                    (name, password, isAdmin))
-        conn.commit()
-        log_event("Create account:", log_level=20)
-    except Exception as e:
-        conn.rollback()
-        log_event("Error create account:", log_level=30, kwargs=e)
-        return f'Error: {e}'
+    if request.method == 'POST':
+        name = request.args.get('name')
+        password = request.args.get('password')
+        isAdmin = request.args.get('isAdmin')
+        try:
+            cur.execute('INSERT INTO users (name, password, isAdmin) VALUES(%s, %s, %s)',
+                        (name, password, isAdmin))
+            conn.commit()
+            log_event("Create account:", log_level=20)
+        except Exception as e:
+            conn.rollback()
+            log_event("Error create account:", log_level=30, kwargs=e)
+            return f'Error: {e}'
+    return render_template('create_profile.html')
 
 
 @admin_app.route('/admin_panel/community/set_account_info')
