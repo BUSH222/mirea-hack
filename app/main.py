@@ -39,16 +39,22 @@ def fetch_data_from_database():
     requests_accepted = list(cur.fetchall())
     for ticket in requests_accepted:
         cur.execute("SELECT id FROM servers WHERE os = %s", (ticket[3], ))
-        all_servers = list(cur.fetchall())
+        all_servers_with_os= list(cur.fetchall())
         cur.execute("SELECT server_id FROM request_servers")
         busy_servers = cur.fetchall()
         for serv in busy_servers:
             for i in range(len(all_servers), -1):
                 if serv == all_servers[i]:
                     all_servers.pop(i)
-        if all_servers != []:
+        cur.execute("SELECT id FROM servers WHERE os = %s", (ticket[3], ))
+        all_servers = list(cur.fetchall())
+        for serv in busy_servers:
+            for i in range(len(all_servers), -1):
+                if serv == all_servers[i]:
+                    all_servers.pop(i)
+        if all_servers_with_os != []:
             try:
-                choosen_server = str(random.choice(requests_accepted)[0])
+                choosen_server = str(random.choice(all_servers_with_os)[0])
                 username = cur.execute('SELECT name FROM users WHERE user_id = %s', (ticket[1], ))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1], ))
                 if os.path.exists(os.path.join('certificates', settings["certificate_name"])):
@@ -68,9 +74,11 @@ def fetch_data_from_database():
                 raise Exception
         else:
             try:
-                choosen_server = str(random.choice(requests_accepted)[0])
+                choosen_server = str(random.choice(all_servers)[0])
                 change_os_on_pxe_server(choosen_server, ticket[3])
-                send_command('sudo reboot')
+                send_command('sudo reboot',
+                             settings[choosen_server], settings["port"])
+                
                 username = cur.execute('SELECT name FROM users WHERE id = %s', (ticket[1], ))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1], ))
                 if os.path.exists(os.path.join('certificates', settings["certificate_name"])):
