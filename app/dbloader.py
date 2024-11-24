@@ -10,7 +10,7 @@ import psycopg2
 from psycopg2 import sql
 import logging
 
-dynamic_host = 'localhost'
+dynamic_host = 'postgres' # "postgres" if in container and "localhost" if in localhost
 
 
 def connect_to_db(db_name='mirea', postgres_pwd='12345678', host=dynamic_host, port='5432'):

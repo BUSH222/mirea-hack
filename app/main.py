@@ -190,4 +190,4 @@ def view_booking():
 if __name__ == '__main__':
     scheduler.init_app(app)
     scheduler.start()
-    app.run(host='localhost', port=5000)
+    app.run(host='0.0.0.0', port=5000)
