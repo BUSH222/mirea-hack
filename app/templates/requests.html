@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Requests</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/requests.css">
+</head>
+<body>
+    <!-- admin navigation bar -->
+    <nav class="admin-navbar">
+        <ul>
+            <li><a href="/admin_panel">Домой</a></li>
+            <li><a href="/admin_panel/logs">Логи</a></li>
+            <li><a href="/admin_panel/requests">Запросы</a></li>
+            <li><a href="/admin_panel/community">Модерация</a></li>
+            <li><a href="/logout">Выйти</a></li>
+        </ul>
+    </nav>
+
+    <div class="container mt-5 pt-5">
+        <h2 class="mb-4">Список запросов</h2>
+
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Почта</th>
+                    <th scope="col">ОС</th>
+                    <th scope="col">Комментарий</th>
+                    <th scope="col">Начальная дата</th>
+                    <th scope="col">Конечная дата</th>
+                    <th scope="col">Есть доступ</th>
+                    <th scope="col">Требуется одобрение вручную</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in data %}
+                <tr class="clickable-row" data-id="{{ request[0] }}" onclick="redirectToViewRequest(this)">
+                    <td>{{ request[0] }}</td>
+                    <td>{{ request[1] }}</td>
+                    <td>{{ request[2] }}</td>
+                    <td>{{ request[3] }}</td>
+                    <td>{{ request[4] }}</td>
+                    <td>{{ request[5] }}</td>
+                    <td>{{ 'Pending' if request[6] is none else request[6] }}</td>
+                    <td>{{ 'Unknown' if request[7] is none else request[7] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>            
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function redirectToViewRequest(row) {
+            const id = row.getAttribute('data-id');
+            window.location.href = `/admin_panel/view_request?id=${id}`;
+        }
+    </script>    
+</body>
+</html>
