@@ -21,8 +21,9 @@
 > docker-compose up --build
 
 Способ 2 (тестовый):
-0) Установить библиотеки
-1) В dbloader поменять dynamic_host = 'localhost'
-2) Запустить постргес сервер
-3) Запустить файл dbloader.py
-4) Запустить файл main.py
+
+1) Установить библиотеки: `pip install -r requirements.txt`
+2) В dbloader поменять dynamic_host = 'localhost'
+3) Запустить постргес сервер
+4) Запустить файл dbloader.py
+5) Запустить файл main.py
