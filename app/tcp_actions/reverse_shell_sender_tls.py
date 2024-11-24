@@ -2,7 +2,7 @@ import socket
 import ssl
 
 
-def send_command(command, host, port, certfile=None, keyfile=None):
+def send_command_tls(command, host, port, certfile=None, keyfile=None):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     context = ssl.create_default_context()
