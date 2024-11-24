@@ -38,9 +38,9 @@ def fetch_data_from_database():
     WHERE accepted = true and start_time=%s and requires_manual_approval=false", (current_date, ))
     requests_accepted = list(cur.fetchall())
     for ticket in requests_accepted:
-        cur.execute("SELECT id FROM servers WHERE os = %s", (ticket[3]))
+        cur.execute("SELECT id FROM servers WHERE os = %s", (ticket[3], ))
         all_servers = list(cur.fetchall())
-        cur.execute("SELECT id FROM request_servers")
+        cur.execute("SELECT server_id FROM request_servers")
         busy_servers = cur.fetchall()
         for serv in busy_servers:
             for i in range(len(all_servers), -1):
@@ -49,15 +49,15 @@ def fetch_data_from_database():
         if all_servers != []:
             try:
                 choosen_server = str(random.choice(requests_accepted)[0])
-                username = cur.execute('SELECT name FROM users WHERE user_id = %s', (ticket[1]))
-                password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
+                username = cur.execute('SELECT name FROM users WHERE user_id = %s', (ticket[1], ))
+                password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1], ))
                 if os.path.exists(os.path.join('certificates', settings["certificate_name"])):
                     keyfile = None
                     certificate = None
-                    send_command_tls(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                    send_command_tls(f'sudo useradd -m -p {password} {username}',
                                      settings[choosen_server], settings["port"], keyfile, certificate)
                 else:
-                    send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                    send_command(f'sudo useradd -m -p {password} {username}',
                                  settings[choosen_server], settings["port"])
                 cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
                             (ticket[0], choosen_server))
@@ -71,12 +71,18 @@ def fetch_data_from_database():
                 choosen_server = str(random.choice(requests_accepted)[0])
                 change_os_on_pxe_server(choosen_server, ticket[3])
                 send_command('sudo reboot')
-                username = cur.execute('SELECT name FROM users WHERE id = %s', (ticket[1]))
-                password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
-                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                username = cur.execute('SELECT name FROM users WHERE id = %s', (ticket[1], ))
+                password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1], ))
+                if os.path.exists(os.path.join('certificates', settings["certificate_name"])):
+                    send_command_tls(f'sudo useradd -m -p {password} {username}',
                              settings[choosen_server], settings["port"])
-                cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
-                            (ticket[0], choosen_server))
+                    cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
+                            (ticket[0], choosen_server))  
+                else:
+                    send_command(f'sudo useradd -m -p {password} {username}',
+                                 settings[choosen_server], settings["port"])
+                    cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
+                                (ticket[0], choosen_server))
                 conn.commit()
                 send_mail(ticket[2], username+' '+password)
             except Exception:
@@ -89,20 +95,30 @@ def fetch_data_from_database():
             cur.execute('SELECT name FROM users WHERE id = %s', (ticket[1], ))
             username = cur.fetchone()
             cur.execute('SELECT server_id FROM request_servers WHERE request_id = %s', (ticket[0], ))
-            serverid = str(cur.fetchone()[0])
-            print(serverid)
-            send_command(f'sudo userdel -r {username}', settings[serverid], settings["port"])
+            serverid = cur.fetchone()
+            if serverid is None:
+                continue
+            send_command(f'sudo userdel -r {username}', settings[str(serverid[0])], settings["port"])
             cur.execute("DELETE FROM request_servers WHERE request_id = %s", (ticket[0], ))
             conn.commit()
-            send_mail(ticket[2], "Доступ к машине завершен")
+            send_mail(ticket[2], "access to the server has been terminated")
         except Exception:
             conn.rollback()
             raise Exception
-    cur.execute(f"SELECT * FROM requests WHERE accepted = true and start_date - {current_date}<865")
-    admin_alert_tickets = list(cur.fetchone)
-    cur.execute("SELECT users.email, requests.user_id ")  # TODO
+    cur.execute("SELECT * FROM requests WHERE accepted = true and start_time - NOW() < INTERVAL '1 day';")
+    admin_alert_tickets = list(cur.fetchall())
+    cur.execute("SELECT id FROM servers")
+    all_servers = list(cur.fetchall())
+    print(all_servers)
+    cur.execute("SELECT server_id FROM request_servers")
+    busy_servers = cur.fetchall()
+    for serv in busy_servers:
+        for i in range(len(all_servers), -1):
+            if serv == all_servers[i]:
+                all_servers.pop(i)
+    print(all_servers)
     for ticket in admin_alert_tickets:
-        send_mail()
+        send_mail(settings['admin_email'], f"go upload os {ticket[3]} on machine for server {random.choice(all_servers)[0]}")
 
 
 @scheduler.task('interval', hours=1)
@@ -192,7 +208,6 @@ def view_booking():
 
 
 if __name__ == '__main__':
-    fetch_data_from_database()
-    # scheduler.init_app(app)
-    # scheduler.start()
-    # app.run(host='localhost', port=5000)
+    scheduler.init_app(app)
+    scheduler.start()
+    app.run(host='0.0.0.0', port=5000)

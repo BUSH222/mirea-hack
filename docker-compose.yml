@@ -13,9 +13,12 @@ services:
       - POSTGRES_PASSWORD=12345678
       - POSTGRES_DB=mirea
       - POSTGRES_HOST=postgress
-      - POSTGRES_PORT=5437
+      - POSTGRES_PORT=5432
+    # volumes:
+    #   - /path/on/host:/path/in/container my_python_app
     ports:
       - "5000:5000"
+      - "8080:8080"
 
 
   postgres:
@@ -36,7 +39,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: postgres
     ports:
-      - "8080:80"
+      - "8000:80"
     depends_on:
       - postgres
 

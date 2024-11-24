@@ -124,7 +124,8 @@ def admin_panel_view_request():
             if action == 'accept':
                 cur.execute('UPDATE requests SET accepted = true WHERE id = %s', (_id,))
                 conn.commit()
-                log_event("Create account:", log_level=20)
+                log_event("request approved:", log_level=20)
+
             elif action == 'decline':
                 cur.execute('UPDATE requests SET accepted = false WHERE id = %s', (_id,))
                 conn.commit()
