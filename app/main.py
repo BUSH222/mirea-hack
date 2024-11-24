@@ -6,11 +6,12 @@ from dbloader import connect_to_db
 from flask_apscheduler import APScheduler
 from datetime import datetime
 import random
+import os
 from settings_loader import get_processor_settings
 from os_alloc_changer import change_os_on_pxe_server
 from mail_sender import send_mail
 from tcp_actions.reverse_shell_sender import send_command
-
+from tcp_actions.reverse_shell_sender_tls import send_command_tls
 settings = get_processor_settings
 app = Flask(__name__)
 
@@ -50,13 +51,18 @@ def fetch_data_from_database():
                 choosen_server = str(random.choice(requests_accepted)[0])
                 username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
-                send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
-                             settings[choosen_server], settings["port"])
+                if os.path.exists(os.path.join('certificates', settings["certificate_name"])):
+                    keyfile = None
+                    certificate = None
+                    send_command_tls(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                                     settings[choosen_server], settings["port"], keyfile, certificate)
+                else:
+                    send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
+                                 settings[choosen_server], settings["port"])
                 cur.execute("INSERT INTO request_servers (request_id,server_id) VALUES (%s,%s)",
                             (ticket[0], choosen_server))
                 conn.commit()
-                send_mail(ticket[2], username+' '+password)
-
+                send_mail(ticket[2], 'Доступ к машине предоставлен '+username+' '+password)
             except Exception:
                 conn.rollback()
                 raise Exception

@@ -83,20 +83,25 @@ def create_tables(populate=False, db_name='mirea', postgres_pwd='12345678', host
     Returns:
         None
     """
+
     logging.info('Table creation operation started')
     logging.info('Connecting to the PostgreSQL server')
     conn, cursor = connect_to_db(db_name=db_name, postgres_pwd=postgres_pwd, host=host, port=port)
+
     logging.info('Creating tables')
     with open('schema.sql', 'r') as schema_obj:
         schema = schema_obj.read()
         cursor.execute(schema)
     conn.commit()
-    if populate:
-        logging.info('Populating tables')
-        with open('populate.sql', 'r', encoding='utf-8') as populate_obj:
-            populate_query = populate_obj.read()
-            cursor.execute(populate_query)
-    conn.commit()
+    try:
+        if populate:
+            logging.info('Populating tables')
+            with open('populate.sql', 'r', encoding='utf-8') as populate_obj:
+                populate_query = populate_obj.read()
+                cursor.execute(populate_query)
+        conn.commit()
+    except Exception:
+        conn.rollback()
     cursor.close()
     conn.close()
     logging.info('Table creation operation completed')
