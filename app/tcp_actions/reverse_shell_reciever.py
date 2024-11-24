@@ -6,7 +6,7 @@ import sys
 host = sys.argv[1]
 port = sys.argv[2]
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((host, int(port)port)))
+server_socket.bind((host, port))
 server_socket.listen(1)
 print(f"Сервер запущен на {host}:{port}. Ожидание подключения...")
 
