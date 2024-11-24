@@ -148,6 +148,9 @@
         .then(response => response.text())
             .then(data => {
                 alert(data)
+                if (data == 'Success'){
+                    window.location.href = '/booking_list'
+                }   
             })
             .catch(error => console.error('Error:', error));
         });
