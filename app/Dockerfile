@@ -11,4 +11,4 @@ RUN pip3 install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
-CMD ["sh", "-c", "cd /app && python main.py"]
+CMD ["sh", "-c", "cd /app && python dbloader.py && python main.py"]
