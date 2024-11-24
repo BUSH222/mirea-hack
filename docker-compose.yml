@@ -15,7 +15,7 @@ services:
       - POSTGRES_HOST=postgress
       - POSTGRES_PORT=5437
     ports:
-      - "8000:8000"
+      - "5000:5000"
 
 
   postgres:
