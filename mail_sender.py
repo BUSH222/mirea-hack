@@ -4,6 +4,15 @@ settings = settings_loader.get_processor_settings()
 
 
 def send_mail(mail, message):
-    smtpObj = smtplib.SMTP('smtp.yandex.ru', 587)
-    smtpObj.login(settings["mail_login"], settings["mail_login"])
-    smtpObj.send_message(settings["mail_login"], mail, message)
+    print(settings['mail_login'])
+    print(settings['mail_password'])
+    smtpObj = smtplib.SMTP('smtp.gmail.com', 25)
+    smtpObj.ehlo()
+    smtpObj.starttls()
+    smtpObj.login(settings["mail_login"], settings["mail_password"])
+    smtpObj.sendmail([settings["mail_login"], ], [mail, ], message)
+    smtpObj.quit()
+
+
+if __name__ == '__main__':
+    send_mail(settings['admin_email'], 'HELP ME')

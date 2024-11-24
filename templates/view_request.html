@@ -89,6 +89,9 @@
             .then(response => response.text())
             .then(data => {
                 alert(data)
+                if (data == 'Success'){
+                    window.location.href = '/admin_panel/requests'
+                }   
             })
             .catch(error => console.error('Error:', error));
         }

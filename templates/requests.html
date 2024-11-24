@@ -44,8 +44,8 @@
                     <td>{{ request[3] }}</td>
                     <td>{{ request[4] }}</td>
                     <td>{{ request[5] }}</td>
-                    <td>{{ 'Yes' if request[6] else 'No' }}</td>
-                    <td>{{ 'Yes' if request[7] else 'No' }}</td>
+                    <td>{{ 'Pending' if request[6] is none else request[6] }}</td>
+                    <td>{{ 'Unknown' if request[7] is none else request[7] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>            

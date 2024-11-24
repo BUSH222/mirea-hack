@@ -1,6 +1,7 @@
 {
-    "mail_login":"",
-    "mail_password":"",
+    "mail_login":"m2306029@edu.misis.ru",
+    "mail_password":"1q2w3e4R2",
+    "admin_email":"fvtorov@gmail.com",
     "pass_gen_len":32,
     "port":8080,
     "12":"192.168.142.122"
