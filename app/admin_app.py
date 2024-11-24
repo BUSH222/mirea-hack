@@ -7,6 +7,9 @@ import psutil
 import random
 import string
 from settings_loader import get_processor_settings
+from mail_sender import send_mail
+
+
 admin_app = Blueprint('admin_app', __name__)
 conn, cur = connect_to_db()
 
@@ -125,11 +128,16 @@ def admin_panel_view_request():
                 cur.execute('UPDATE requests SET accepted = true WHERE id = %s', (_id,))
                 conn.commit()
                 log_event("request approved:", log_level=20)
-
+                cur.execute('SELECT r.email FROM requests r JOIN users u ON r.user_id = u.id WHERE r.id=%s', (_id, ))
+                email = cur.fetchone()[0]
+                send_mail(email, f"Application {_id} has been accepted")
             elif action == 'decline':
                 cur.execute('UPDATE requests SET accepted = false WHERE id = %s', (_id,))
                 conn.commit()
                 log_event("Request denied:", log_level=20)
+                cur.execute('SELECT r.email FROM requests r JOIN users u ON r.user_id = u.id WHERE r.id=%s', (_id, ))
+                email = cur.fetchone()[0]
+                send_mail(email, f"Application {_id} has been declined")
             return 'Success'
         except Exception as e:
             print(e)
