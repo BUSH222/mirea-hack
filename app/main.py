@@ -12,7 +12,7 @@ from os_alloc_changer import change_os_on_pxe_server
 from mail_sender import send_mail
 from tcp_actions.reverse_shell_sender import send_command
 from tcp_actions.reverse_shell_sender_tls import send_command_tls
-settings = get_processor_settings
+settings = get_processor_settings()
 app = Flask(__name__)
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # Remove in final version
@@ -35,7 +35,7 @@ login_manager.login_view = 'app_login.login'
 def fetch_data_from_database():
     current_date = datetime.now().strftime("%Y-%m-%d")
     cur.execute("SELECT * FROM requests\
-    WHERE accepted = true and start_time=%s and requiers_manual_approval=false", (current_date))
+    WHERE accepted = true and start_time=%s and requires_manual_approval=false", (current_date, ))
     requests_accepted = list(cur.fetchall())
     for ticket in requests_accepted:
         cur.execute("SELECT id FROM servers WHERE os = %s", (ticket[3]))
@@ -49,7 +49,7 @@ def fetch_data_from_database():
         if all_servers != []:
             try:
                 choosen_server = str(random.choice(requests_accepted)[0])
-                username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
+                username = cur.execute('SELECT name FROM users WHERE user_id = %s', (ticket[1]))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
                 if os.path.exists(os.path.join('certificates', settings["certificate_name"])):
                     keyfile = None
@@ -71,7 +71,7 @@ def fetch_data_from_database():
                 choosen_server = str(random.choice(requests_accepted)[0])
                 change_os_on_pxe_server(choosen_server, ticket[3])
                 send_command('sudo reboot')
-                username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
+                username = cur.execute('SELECT name FROM users WHERE id = %s', (ticket[1]))
                 password = cur.execute('SELECT password FROM users WHERE id = %s', (ticket[1]))
                 send_command(f'sudo useradd -m "{username}" && echo "{username}:{password}" | sudo chpasswd',
                              settings[choosen_server], settings["port"])
@@ -82,13 +82,17 @@ def fetch_data_from_database():
             except Exception:
                 conn.rollback()
                 raise Exception
-    cur.execute(f"SELECT * FROM requests WHERE accepted = true and end_time<{current_date}")
+    cur.execute("SELECT * FROM requests WHERE accepted = true and end_time < CAST(%s AS TIMESTAMP)", (current_date, ))
     tickets_overdue = list(cur.fetchall())
     for ticket in tickets_overdue:
         try:
-            username = cur.execute('SELECT username FROM users WHERE user_id = %s', (ticket[1]))
-            send_command(f'sudo userdel -r {username}')
-            cur.execute("DELETE FROM request_servers WHERE request_id = %s", (ticket[0]))
+            cur.execute('SELECT name FROM users WHERE id = %s', (ticket[1], ))
+            username = cur.fetchone()
+            cur.execute('SELECT server_id FROM request_servers WHERE request_id = %s', (ticket[0], ))
+            serverid = str(cur.fetchone()[0])
+            print(serverid)
+            send_command(f'sudo userdel -r {username}', settings[serverid], settings["port"])
+            cur.execute("DELETE FROM request_servers WHERE request_id = %s", (ticket[0], ))
             conn.commit()
             send_mail(ticket[2], "Доступ к машине завершен")
         except Exception:
@@ -188,6 +192,7 @@ def view_booking():
 
 
 if __name__ == '__main__':
-    scheduler.init_app(app)
-    scheduler.start()
-    app.run(host='localhost', port=5000)
+    fetch_data_from_database()
+    # scheduler.init_app(app)
+    # scheduler.start()
+    # app.run(host='localhost', port=5000)
